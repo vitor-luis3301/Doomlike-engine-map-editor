@@ -35,11 +35,9 @@ int main(int argc, char** argv){
     SDL_SetRenderTarget(renderer, texture);
     
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_RenderDrawLine(renderer, 300, 200, 0, 0);
 
     SDL_RenderClear(renderer);
-
-    SDL_SetTextureColorMod(texture)
-    SDL_RenderDrawLine(renderer, 300, 200, 0, 0);
 
     SDL_SetRenderTarget(renderer, NULL);
 
@@ -75,7 +73,7 @@ int main(int argc, char** argv){
 
         SDL_SetRenderDrawColor(renderer, 120, 180, 255, 255);
         SDL_RenderClear(renderer);
-        
+
         ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
 
         SDL_RenderPresent(renderer);
