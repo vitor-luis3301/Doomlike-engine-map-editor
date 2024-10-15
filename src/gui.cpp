@@ -10,7 +10,7 @@ void initImgui(SDL_Window *w, SDL_Renderer *r)
     ImGui_ImplSDLRenderer2_Init(r);
 }
 
-void createFrame(int test)
+void createFrame(int test, SDL_Texture *texture)
 {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
@@ -18,6 +18,10 @@ void createFrame(int test)
     ImGui::NewFrame();
     ImGui::Begin("test");
     ImGui::Text("%d", test);
+    ImGui::End();
+
+    ImGui::Begin("image");
+    ImGui::Image((ImTextureID)texture, ImVec2(998*2,772*2));
     ImGui::End();
 }
 

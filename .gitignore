@@ -49,3 +49,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Vscode shit
+.vscode/

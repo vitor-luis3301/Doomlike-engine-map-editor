@@ -24,26 +24,20 @@ int main(int argc, char** argv){
         printf("Error: Failed to create renderer\nSDL Error: '%s'\n", SDL_GetError());
         return 1;
     }
-
-    SDL_Texture *texture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_BGRA8888,
-        SDL_TEXTUREACCESS_TARGET,
-        300, 200
-    );
-
-    SDL_SetRenderTarget(renderer, texture);
-    
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    SDL_RenderDrawLine(renderer, 300, 200, 0, 0);
-
-    SDL_RenderClear(renderer);
-
-    SDL_SetRenderTarget(renderer, NULL);
-
-    initImgui(window, renderer);
     
     int test = 0;
+
+    SDL_Rect source{0,0,SCREEN_WIDTH, SCREEN_HEIGHT};
+    SDL_Rect destination{0, 0, SCREEN_WIDTH*2, SCREEN_HEIGHT*2};
+
+    SDL_Texture *texture = SDL_CreateTexture(
+        renderer, SDL_PIXELFORMAT_RGBA32,
+        SDL_TEXTUREACCESS_TARGET, 
+        SCREEN_WIDTH*2, SCREEN_HEIGHT*2
+    );
+
+    SDL_Rect camera{0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
+
 
     bool running = true;
     while(running){
@@ -56,30 +50,42 @@ int main(int argc, char** argv){
                 case SDL_KEYDOWN:
                     if (event.key.keysym.scancode == SDL_SCANCODE_ESCAPE)
                         running = false;
+                    
+                    if (event.key.keysym.scancode == SDL_SCANCODE_LEFT)
+                        camera.x--;
+                    else if (event.key.keysym.scancode == SDL_SCANCODE_RIGHT)
+                        camera.x++;
+                    else
+                        camera.x = 0;
                 default:
                     break;
             }
-            ImGui_ImplSDL2_ProcessEvent(&event);
+            //ImGui_ImplSDL2_ProcessEvent(&event);
         }
-        
-        createFrame(test);
-        test++;
 
-        ImGui::Begin("image");
-        ImGui::Image((ImTextureID)texture, ImVec2(300, 200));
-        ImGui::End();
-        
-        ImGui::Render();
+        destination.x = destination.x - camera.x;
+        destination.y = destination.y - camera.y;
 
-        SDL_SetRenderDrawColor(renderer, 120, 180, 255, 255);
+
+        //put yout ImGui widgets here
+        //ImGui::Render();
+        SDL_SetRenderTarget(renderer, texture);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_RenderDrawLine(renderer, 70,220,100,220);
+        SDL_RenderDrawLine(renderer, 100,220,100,240);
+        SDL_RenderDrawLine(renderer, 100,240,70,240);
+        SDL_RenderDrawLine(renderer, 70,240,70,220);
 
+        SDL_SetRenderTarget(renderer, NULL);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, &source, &destination);
+        //ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
     }
-
-    destroyImgui();
     
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
