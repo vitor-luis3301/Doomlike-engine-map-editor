@@ -11,5 +11,40 @@ They are here so then I can get these variables whenever and wherever I need the
 **********************************************************************************
 
 */
+typedef struct _sector 
+{
+    int num_walls;
+    int height;
+    int elevation;
+    unsigned int color;
+    unsigned int floor_color;
+    unsigned int ceiling_color;
+} sector;
+
+typedef struct _sectorAdditionalData
+{
+    int isPortal;
+    int th;
+    int bh;
+} secAdData;
+
+typedef struct _wall
+{
+    int ax;
+    int ay;
+    int bx;
+    int by;
+} wall;
+
+class Global {
+    public:
+        int sectorCount;
+        secAdData *sectorsAdditionalData;
+
+        sector *sectors;
+        int** walls;
+
+        Global() { }
+};
 
 #endif

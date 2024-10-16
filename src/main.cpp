@@ -1,13 +1,16 @@
 #include <stdio.h>
 #include <iostream>
-#include <string>
 
 #define SCREEN_WIDTH 1280 
 #define SCREEN_HEIGHT 720
 
 #include "gui.h"
+#include "fileread.h"
+
 
 int main(int argc, char** argv){
+    fileRead fr = fileRead();
+
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0){
         printf("Error: SDL failed to initialize\nSDL Error: '%s'\n", SDL_GetError());
         return 1;
@@ -38,6 +41,20 @@ int main(int argc, char** argv){
 
     SDL_Rect camera{0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
 
+    char *filename = "level.txt";
+    fr.init(argv[0], filename);
+    Global globalvars = fr.interpret();
+
+    SDL_Point *points;
+
+    for (int i = 0; i < globalvars.sectorCount; i++)
+    {
+        for (int j = 0; j < globalvars.sectorCount*4; j+=2)
+        {
+            points[(i+1)*j].x = globalvars.walls[i][j];
+            points[(i+1)*j].y = globalvars.walls[i][j+1];
+        }
+    }
 
     bool running = true;
     while(running){
@@ -74,10 +91,9 @@ int main(int argc, char** argv){
         SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderDrawLine(renderer, 70,220,100,220);
-        SDL_RenderDrawLine(renderer, 100,220,100,240);
-        SDL_RenderDrawLine(renderer, 100,240,70,240);
-        SDL_RenderDrawLine(renderer, 70,240,70,220);
+        
+        SDL_RenderDrawLines(renderer, points, sizeof(points)/sizeof(points[0]));
+        
 
         SDL_SetRenderTarget(renderer, NULL);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -85,7 +101,7 @@ int main(int argc, char** argv){
         SDL_RenderCopy(renderer, texture, &source, &destination);
         //ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
-    }
+}
     
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
