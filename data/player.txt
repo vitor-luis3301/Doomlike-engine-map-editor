@@ -1,0 +1,2 @@
+[SPAWN POINTS]
+# lvl_1: 40,40

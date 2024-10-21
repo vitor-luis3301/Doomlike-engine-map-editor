@@ -43,6 +43,7 @@ class Global {
 
         sector *sectors;
         int** walls;
+        int wallPoints;
 
         Global() { }
 };

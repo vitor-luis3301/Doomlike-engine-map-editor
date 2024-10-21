@@ -19,7 +19,7 @@ class fileRead {
     public:
         fileRead() {}
         int init(char *filepath, char *filename);
-        Global interpret();
+        Global interpret(const int typeOfFile);
 };
 
 #endif

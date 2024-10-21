@@ -33,107 +33,115 @@ int fileRead::init(char *filepath, char *filename)
     return 0;
 }
 
-Global fileRead::interpret()
+Global fileRead::interpret(const int typeOfFile)
 {
     Global global;
-
-    char sectorCountData[20];
-
-    fgets(sectorCountData, 20, fp);
     
-    if (strstr(sectorCountData, "# SECTOR COUNT: "))
-        strremove(sectorCountData, "# SECTOR COUNT: ");
-
-    int sectorCount = atoi(sectorCountData);
-    global.sectorCount = sectorCount;
-
-    char sectorData[100];
-    
-    sector sectors[sectorCount];
-    secAdData sectorsAdditionalData[sectorCount];
-
-    int numSector = 0;
-
-    while(fgets(sectorData, 100, fp))
+    if (typeOfFile == 0)
     {
-        if (0==strcmp(sectorData, "[WALLS]\n"))
-            break;
-        else if (0!=strcmp(sectorData, "[SECTORS]\n"))
+        char sectorCountData[20];
+
+        fgets(sectorCountData, 20, fp);
+        
+        if (strstr(sectorCountData, "# SECTOR COUNT: "))
+            strremove(sectorCountData, "# SECTOR COUNT: ");
+
+        int sectorCount = atoi(sectorCountData);
+        global.sectorCount = sectorCount;
+
+        char sectorData[100];
+        
+        sector sectors[sectorCount];
+        secAdData sectorsAdditionalData[sectorCount];
+
+        int numSector = 0;
+
+        while(fgets(sectorData, 100, fp))
         {
-            int nums[9];
-            unsigned int colors[3];
+            if (0==strcmp(sectorData, "[WALLS]\n"))
+                break;
+            else if (0!=strcmp(sectorData, "[SECTORS]\n"))
+            {
+                int nums[9];
+                unsigned int colors[3];
+
+                char *token;
+
+                int i = 0;
+
+                token = strtok(sectorData, ",");
+
+                while (token != NULL)
+                {
+                    if (strstr(token, "0x"))
+                        sscanf(token, "%x", &colors[i-2]);
+                    else
+                        nums[i] = atoi(token);
+                    i++;
+                    token = strtok(NULL, ",");
+                }
+                //printf("%d: [%d, %d, %u, %u, %u, %s, %d, %d, %d]\n", numSector, nums[0], nums[1], colors[0], colors[1], colors[2], nums[5] ? "true" : "false", nums[6], nums[7], nums[8]);
+                sectors[numSector].height = nums[0];
+                sectors[numSector].elevation = nums[1];
+                sectors[numSector].color = colors[0];
+                sectors[numSector].ceiling_color = colors[1];
+                sectors[numSector].floor_color = colors[2];
+                sectors[numSector].num_walls = nums[8];
+                
+                sectorsAdditionalData[numSector].isPortal = nums[5];
+                sectorsAdditionalData[numSector].th = nums[6];
+                sectorsAdditionalData[numSector].bh = nums[7];
+
+                numSector++;
+            }
+        }
+        char wall_vertices[100];
+        int wallCoords[sectorCount][sectorCount*4];
+
+        int wallNum = 0;
+        int secNum = -1;
+        int i = 0;
+
+        while(fgets(wall_vertices, 100, fp))
+        {
+            if (strstr(wall_vertices, "# SECTOR: "))
+            {
+                secNum++; wallNum = 0;
+                strremove(wall_vertices, "# SECTOR: ");
+            }
 
             char *token;
 
-            int i = 0;
+            token = strtok(wall_vertices, ",");
 
-            token = strtok(sectorData, ",");
-
-            while (token != NULL)
+            while( token != NULL ) 
             {
-                if (strstr(token, "0x"))
-                    sscanf(token, "%x", &colors[i-2]);
-                else
-                    nums[i] = atoi(token);
-                i++;
+                wallCoords[secNum][wallNum] = atoi(token);
+                wallNum++; i++;
                 token = strtok(NULL, ",");
             }
-            //printf("%d: [%d, %d, %u, %u, %u, %s, %d, %d, %d]\n", numSector, nums[0], nums[1], colors[0], colors[1], colors[2], nums[5] ? "true" : "false", nums[6], nums[7], nums[8]);
-            sectors[numSector].height = nums[0];
-            sectors[numSector].elevation = nums[1];
-            sectors[numSector].color = colors[0];
-            sectors[numSector].ceiling_color = colors[1];
-            sectors[numSector].floor_color = colors[2];
-            sectors[numSector].num_walls = nums[8];
-            
-            sectorsAdditionalData[numSector].isPortal = nums[5];
-            sectorsAdditionalData[numSector].th = nums[6];
-            sectorsAdditionalData[numSector].bh = nums[7];
+        }   
 
-            numSector++;
-        }
+        fclose(fp);
+
+
+        global.sectors = sectors;
+        global.sectorsAdditionalData = sectorsAdditionalData;
+
+        global.walls = new int*[sectorCount];
+
+        for (int i = 0; i < sectorCount; i++)
+            global.walls[i] = new int[sectorCount*4];
+        
+
+        for (int i = 0; i < sectorCount; i++)
+            for (int j = 0; j < sectorCount*4; j++)
+                global.walls[i][j] = wallCoords[i][j];
+                global.wallPoints++;
     }
-    char wall_vertices[100];
-    int wallCoords[sectorCount][sectorCount*4];
-
-    int wallNum = 0;
-    int secNum = -1;
-
-    while(fgets(wall_vertices, 100, fp))
+    else if (typeOfFile == 1)
     {
-        if (strstr(wall_vertices, "# SECTOR: "))
-        {
-            secNum++; wallNum = 0;
-            strremove(wall_vertices, "# SECTOR: ");
-        }
-
-        char *token;
-
-        token = strtok(wall_vertices, ",");
-
-        while( token != NULL ) 
-        {
-            wallCoords[secNum][wallNum] = atoi(token);
-            wallNum++;
-            token = strtok(NULL, ",");
-        }
-    }   
-
-    fclose(fp);
-
-
-    global.sectors = sectors;
-    global.sectorsAdditionalData = sectorsAdditionalData;
-
-    global.walls = new int*[sectorCount];
-
-    for (int i = 0; i < sectorCount; i++)
-        global.walls[i] = new int[sectorCount*4];
-    
-
-    for (int i = 0; i < sectorCount; i++)
-        for (int j = 0; j < sectorCount*4; j++)
-            global.walls[i][j] = wallCoords[i][j];
-    
+        // do the playerfile
+    }
     return global;
 }

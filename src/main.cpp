@@ -41,18 +41,24 @@ int main(int argc, char** argv){
 
     SDL_Rect camera{0,0,SCREEN_WIDTH,SCREEN_HEIGHT};
 
-    char *filename = "level.txt";
+    char *filename = "level.mp";
     fr.init(argv[0], filename);
-    Global globalvars = fr.interpret();
+    Global globalvars = fr.interpret(0);
 
-    SDL_Point *points;
+    int pointCount = 0;
+    for (int i = 0; i < globalvars.sectorCount; i++)
+        for (int j = 0; j < globalvars.sectors[i].num_walls; j++)
+            pointCount++;
 
+    SDL_Point p[pointCount];
+    int aux = 0;
     for (int i = 0; i < globalvars.sectorCount; i++)
     {
-        for (int j = 0; j < globalvars.sectorCount*4; j+=2)
+        for (int j = 0; j < globalvars.sectors[i].num_walls/2; j++)
         {
-            points[(i+1)*j].x = globalvars.walls[i][j];
-            points[(i+1)*j].y = globalvars.walls[i][j+1];
+            p[aux].x = globalvars.walls[i][j*2];
+            p[aux].y = globalvars.walls[i][j*2+1];
+            aux++;
         }
     }
 
@@ -72,8 +78,6 @@ int main(int argc, char** argv){
                         camera.x--;
                     else if (event.key.keysym.scancode == SDL_SCANCODE_RIGHT)
                         camera.x++;
-                    else
-                        camera.x = 0;
                 default:
                     break;
             }
@@ -92,7 +96,7 @@ int main(int argc, char** argv){
 
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         
-        SDL_RenderDrawLines(renderer, points, sizeof(points)/sizeof(points[0]));
+        SDL_RenderDrawLines(renderer, p, aux);
         
 
         SDL_SetRenderTarget(renderer, NULL);
@@ -101,7 +105,7 @@ int main(int argc, char** argv){
         SDL_RenderCopy(renderer, texture, &source, &destination);
         //ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
         SDL_RenderPresent(renderer);
-}
+    }
     
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
